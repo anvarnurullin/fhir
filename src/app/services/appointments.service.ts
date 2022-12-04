@@ -1,4 +1,20 @@
-//get patients ids in Appointment.participant[].actor.reference from https://hapi.fhir.org/baseR4/Appointment?_count=10&_format=json
-//and then get patients info from http://hapi.fhir.org/baseR4/Patient/{PatientID} where PatientID is the id from the previous step
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { delay, Observable, retry, tap } from 'rxjs';
+import { IAppointment } from '../models/appointments';
+import { IPatient } from '../models/patients';
 
+@Injectable({
+  providedIn: 'root',
+})
+export class AppointmentsService {
+  constructor(private http: HttpClient) {}
 
+  appointments: IAppointment;
+
+  getAppointments(): Observable<IAppointment> {
+    return this.http.get<IAppointment>(
+      'https://hapi.fhir.org/baseR4/Appointment?_count=10&_format=json'
+    );
+  }
+}
