@@ -1,7 +1,6 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Component, Input, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
-import { IAppointment } from 'src/app/models/appointments';
+import { IPatientsEntry } from 'src/app/models/patientsEntry';
 import { IPatient } from 'src/app/models/patients';
 import { AppointmentsService } from 'src/app/services/appointments.service';
 
@@ -11,9 +10,9 @@ import { AppointmentsService } from 'src/app/services/appointments.service';
   styleUrls: ['./appointments.component.css'],
 })
 export class AppointmentsComponent implements OnInit {
-  @Input() entries: any;
-  appointments$: Observable<IAppointment>;
-  patients$: Observable<IPatient>;
+  @Input()
+  entries: IPatientsEntry[] = [];
+  loading = false;
 
   constructor(
     private http: HttpClient,
@@ -21,6 +20,7 @@ export class AppointmentsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loading = true;
     this.appointmentsService.getAppointments().subscribe((data) => {
       data.entry.map((entry) => {
         this.http
@@ -32,9 +32,10 @@ export class AppointmentsComponent implements OnInit {
             }`
           )
           .subscribe((patient) => {
-            patient.entry ? (this.entries = patient.entry) : null;
+            this.entries = patient.entry;
           });
       });
+      this.loading = false;
     });
   }
 }

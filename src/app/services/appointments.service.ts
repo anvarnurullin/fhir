@@ -10,7 +10,7 @@ export class AppointmentsService {
   constructor(private http: HttpClient) {}
   getAppointments(): Observable<IAppointment> {
     return this.http.get<IAppointment>(
-      'https://hapi.fhir.org/baseR4/Appointment?_count=10&_format=json'
+      'https://hapi.fhir.org/baseR4/Appointment?_count=10'
     );
   }
 }
