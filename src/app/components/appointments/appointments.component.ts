@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Component, Input, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { IAppointment } from 'src/app/models/appointments';
@@ -11,10 +11,9 @@ import { AppointmentsService } from 'src/app/services/appointments.service';
   styleUrls: ['./appointments.component.css'],
 })
 export class AppointmentsComponent implements OnInit {
-  @Input() entries: Array<object> = [];
+  @Input() entries: any;
   appointments$: Observable<IAppointment>;
   patients$: Observable<IPatient>;
-  loading = false;
 
   constructor(
     private http: HttpClient,
@@ -22,7 +21,6 @@ export class AppointmentsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loading = true;
     this.appointmentsService.getAppointments().subscribe((data) => {
       data.entry.map((entry) => {
         this.http
@@ -31,16 +29,12 @@ export class AppointmentsComponent implements OnInit {
               entry.resource.participant.length > 1
                 ? entry.resource.participant[1].actor.reference.split('/')[1]
                 : ''
-            }`,
-            {
-              responseType: 'json',
-            }
+            }`
           )
           .subscribe((patient) => {
             patient.entry ? (this.entries = patient.entry) : null;
           });
       });
     });
-    this.loading = false;
   }
 }
