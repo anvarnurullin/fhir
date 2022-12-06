@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, Input, OnInit } from '@angular/core';
 import { IPatientsEntry } from 'src/app/models/patientsEntry';
-import { IPatient } from 'src/app/models/patients';
 import { AppointmentsService } from 'src/app/services/appointments.service';
+import { PatientsService } from 'src/app/services/patients.service';
 
 @Component({
   selector: 'app-appointments',
@@ -16,24 +16,17 @@ export class AppointmentsComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    public appointmentsService: AppointmentsService
+    public appointmentsService: AppointmentsService,
+    public patientsService: PatientsService
   ) {}
 
   ngOnInit(): void {
     this.loading = true;
     this.appointmentsService.getAppointments().subscribe((data) => {
       data.entry.map((entry) => {
-        this.http
-          .get<IPatient>(
-            `https://hapi.fhir.org/baseR4/Patient/${
-              entry.resource.participant.length > 1
-                ? entry.resource.participant[1].actor.reference.split('/')[1]
-                : ''
-            }`
-          )
-          .subscribe((patient) => {
-            this.entries = patient.entry;
-          });
+        this.patientsService.getPatients(entry).subscribe((patient) => {
+          this.entries = patient.entry;
+        });
       });
       this.loading = false;
     });
