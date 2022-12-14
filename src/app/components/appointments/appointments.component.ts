@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
 import { Component, Input, OnInit } from '@angular/core';
-import { IPatientsEntry } from 'src/app/models/patientsEntry';
+import { map, mergeMap, Observable, switchMap } from 'rxjs';
+import { IPatient } from 'src/app/models/patients';
 import { AppointmentsService } from 'src/app/services/appointments.service';
 import { PatientsService } from 'src/app/services/patients.service';
 
@@ -11,24 +11,32 @@ import { PatientsService } from 'src/app/services/patients.service';
 })
 export class AppointmentsComponent implements OnInit {
   @Input()
-  entries: IPatientsEntry[] = [];
+  entries$: Observable<IPatient['entry']>;
   loading = false;
 
   constructor(
-    private http: HttpClient,
     public appointmentsService: AppointmentsService,
     public patientsService: PatientsService
   ) {}
 
   ngOnInit(): void {
     this.loading = true;
-    this.appointmentsService.getAppointments().subscribe((data) => {
-      data.entry.map((entry) => {
-        this.patientsService.getPatients(entry).subscribe((patient) => {
-          this.entries = patient.entry;
-        });
-      });
+    this.entries$ = this.appointmentsService.getAppointments().pipe(
+      switchMap((data) =>
+        data
+          ? data.map((entry) => {
+              return entry
+                ? this.patientsService
+                    .getPatients(entry)
+                    ?.pipe(map((patient) => patient.entry))
+                : null;
+            })
+          : []
+      ),
+      mergeMap((data) => (data ? (data as Observable<IPatient['entry']>) : []))
+    );
+    if (this.entries$) {
       this.loading = false;
-    });
+    }
   }
 }
