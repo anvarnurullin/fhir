@@ -62,3 +62,42 @@ export interface IPatient {
     }
   ];
 }
+
+
+// export interface IPatient {
+//   resourceType: string;
+//   id: string;
+//   meta: {
+//     versionId: string;
+//     lastUpdated: string;
+//     source: string;
+//   };
+//   text: {
+//     status: string;
+//     div: string;
+//   };
+//   name: [
+//     {
+//       use?: string;
+//       text: string;
+//       family?: string;
+//       given?: string[];
+//     }
+//   ];
+//   gender?: string;
+//   birthDate?: string;
+//   managingOrganization?: {
+//     reference: string;
+//     display: string;
+//   };
+//   maritalStatus?: {
+//     coding: [
+//       {
+//         system: string;
+//         code: string;
+//         display: string;
+//       }
+//     ];
+//     text: string;
+//   };
+// }

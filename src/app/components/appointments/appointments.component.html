@@ -1,4 +1,4 @@
-<div class="wrapper">
+<!-- <div class="wrapper">
   <h1 *ngIf="loading">Loading...</h1>
   <div class="card" *ngFor="let patient of entries$ | async">
     <h2>
@@ -18,6 +18,25 @@
       Birthdate:
       {{ patient.resource.birthDate ? patient.resource.birthDate : "no data" }}
     </p>
-    <p>Appointments:</p>
+    <p>Id: {{ patient.resource.id }}</p>
+    <div *ngFor="let appointment of appointments$ | async">
+      <p>
+        {{
+          appointment.resource.participant &&
+            appointment.resource.participant[1] &&
+            appointment.resource.participant[1].actor!.reference.split("/")[1]
+        }}
+      </p>
+      <p>
+        {{
+          appointment.resource.participant &&
+            appointment.resource.participant[1] &&
+            appointment.resource.participant[1].actor!.reference.split(
+              "/"
+            )[1] == patient.resource.id
+        }}
+      </p>
+    </div>
   </div>
-</div>
+</div> -->
+

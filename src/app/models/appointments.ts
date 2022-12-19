@@ -26,27 +26,59 @@ export interface IAppointment {
           lastUpdated: string;
           source: string;
         };
-        text: {
+        status: string;
+        text?: {
           status: string;
           div: string;
         };
-        status: string;
-        description: string;
-        start: string;
-        end: string;
-        minutesDuration: number;
-        participant: [
+        serviceType?: [
           {
-            actor: {
+            coding: [
+              {
+                system: string;
+                code: string;
+                display: string;
+              }
+            ];
+            text: string;
+          }
+        ];
+        appointmentType?: {
+          coding: [
+            {
+              system: string;
+              code: string;
               display: string;
+            }
+          ];
+        };
+        description?: string;
+        start?: string;
+        end?: string;
+        minutesDuration?: number;
+        participant?: [
+          {
+            type?: [
+              {
+                coding: [
+                  {
+                    system: string;
+                    code: string;
+                  }
+                ];
+              }
+            ];
+            actor?: {
+              display: string;
+              reference?: string;
             };
             status: string;
           },
           {
-            actor: {
+            actor?: {
               reference: string;
             };
-            status: string;
+            status?: string;
           }
         ];
       };
