@@ -1,59 +1,13 @@
-<!-- <div class="wrapper">
-  <h1 *ngIf="loading">Loading...</h1>
-  <div class="card" *ngFor="let patient of entries$ | async">
-    <h2>
-      {{
-        patient.resource.name[0].text
-          ? patient.resource.name[0].text
-          : patient.resource.name[0].family +
-            " " +
-            patient.resource.name[0].given
-      }}
-    </h2>
-    <p>
-      Gender:
-      {{ patient.resource.gender ? patient.resource.gender : "no data" }}
-    </p>
-    <p>
-      Birthdate:
-      {{ patient.resource.birthDate ? patient.resource.birthDate : "no data" }}
-    </p>
-    <p>Id: {{ patient.resource.id }}</p>
-    <div *ngFor="let appointment of appointments$ | async">
-      <p>
-        {{
-          appointment.resource.participant &&
-            appointment.resource.participant[1] &&
-            appointment.resource.participant[1].actor!.reference.split("/")[1]
-        }}
-      </p>
-      <p>
-        {{
-          appointment.resource.participant &&
-            appointment.resource.participant[1] &&
-            appointment.resource.participant[1].actor!.reference.split(
-              "/"
-            )[1] == patient.resource.id
-        }}
-      </p>
-    </div>
-  </div>
-</div> -->
-
-<div class="wrapper" *ngIf="patients">
+<div class="wrapper" *ngIf="overlaps">
   <ul>
-    <li class="card" *ngFor="let patient of patients">
-      <h2>
-        {{
-          patient.name[0].text
-            ? patient.name[0].text
-            : patient.name[0].family + " " + patient.name[0].given
-        }}
-      </h2>
-      <p>Gender: {{ patient.gender ? patient.gender : "no data" }}</p>
-      <p>Birthdate: {{ patient.birthDate ? patient.birthDate : "no data" }}</p>
-      <!-- <p>{{ appointments.filter((app) => app.resource.participant[1].actor!.reference.split("/")[1] == patient.id).length }}</p>  -->
-      <div *ngFor="let appointment of appointments">
+    <li class="card" *ngFor="let patient of overlaps">
+      <h2>{{ patient.name }}</h2>
+      <p>Gender: {{ patient.gender }}</p>
+      <p>Birthdate: {{ patient.birthDate }}</p>
+      <p *ngFor="let count of patientCounts | keyvalue">
+        {{ count.key == patient.id ? "Appointments: " + count.value : "" }}
+      </p>
+      <div class="appointments" *ngFor="let appointment of appointments">
         <p>
           {{
             appointment.resource.participant &&
@@ -77,26 +31,6 @@
           }}
         </p>
       </div>
-      <!-- <p>Appointments:</p>
-        <div *ngFor="let appointment of coincidences">
-          <p>{{ coincidences.filter((app) => patients.some((pat) => app.resource.participant[1].actor!.reference.split("/")[1] == patient.id)).length }}</p>
-        <p>
-          {{
-            appointment.resource.participant[1].actor!.reference.split(
-              "/"
-            )[1] == patient.id ? (appointment.resource.start | date: 'medium') : ''
-          }}
-        </p>
-        <p>
-          {{
-            appointment.resource.participant[1].actor!.reference.split(
-              "/"
-            )[1] == patient.id
-              ? appointment.resource.description
-              : ""
-          }}
-        </p>
-      </div> -->
     </li>
   </ul>
 </div>

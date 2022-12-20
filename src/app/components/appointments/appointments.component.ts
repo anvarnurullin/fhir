@@ -3,8 +3,8 @@ import { catchError, map, mergeMap, Observable, switchMap } from 'rxjs';
 import { IAppointment } from 'src/app/models/appointments';
 import { IPatient } from 'src/app/models/patients';
 import { AppointmentsService } from 'src/app/services/appointments.service';
-import { PatientsService } from 'src/app/services/patients.service';
 import { HttpClient } from '@angular/common/http';
+import { IAppointmentPatient } from 'src/app/models/appointmentPatient';
 
 @Component({
   selector: 'app-appointments',
@@ -15,20 +15,17 @@ export class AppointmentsComponent implements OnInit {
   @Input()
   entries$: Observable<IPatient['entry']>;
   appointments$: Observable<IAppointment['entry']>;
-  loading = false;
   patients: any[] = [];
   appointments: IAppointment['entry'];
-  coincidences: any[] = [];
+  overlaps: IAppointmentPatient[] = [];
+  patientCounts = new Map<string, number>();
 
   constructor(
     private http: HttpClient,
-    public appointmentsService: AppointmentsService,
-    public patientsService: PatientsService
+    public appointmentsService: AppointmentsService
   ) {}
 
   ngOnInit(): void {
-    this.loading = true;
-
     this.appointments$ = this.appointmentsService.getAppointments().pipe(
       map((data) => data.entry),
       catchError((error) => {
@@ -48,7 +45,7 @@ export class AppointmentsComponent implements OnInit {
                   entry.resource.participant![1].actor!.reference
                 }`
               )
-            : ([] as unknown);
+            : ([] as unknown as Observable<IPatient['entry']>);
         })
       ),
       mergeMap((data) => data as Observable<IPatient['entry']>),
@@ -68,21 +65,39 @@ export class AppointmentsComponent implements OnInit {
       next: (data) => this.patients.push(data),
       error: (error) => console.log(error),
       complete: () => {
-        this.patients = this.patients.filter(
-          (arr, index, self) => index === self.findIndex((t) => t.id === arr.id)
-        );
-        console.log(this.patients);
-        this.coincidences = this.appointments.filter((appointment) =>
-          this.patients.some(
-            (patient) =>
-              appointment.resource.participant &&
-              appointment.resource.participant.length > 1 &&
-              appointment.resource.participant[1].actor?.reference.split(
-                '/'
-              )[1] === patient.id
-          )
-        );
-        console.log(this.coincidences);
+        for (const app of this.appointments) {
+          const patientId =
+            app.resource.participant &&
+            app.resource.participant[1] &&
+            app.resource.participant[1].actor!.reference.split('/')[1];
+          if (this.patientCounts.has(patientId!)) {
+            this.patientCounts.set(
+              patientId!,
+              this.patientCounts.get(patientId!)! + 1
+            );
+          } else {
+            this.patientCounts.set(patientId!, 1);
+          }
+          for (const patient of this.patients) {
+            if (patientId) {
+              const overlap: IAppointmentPatient = {
+                id: patient.id,
+                name: patient.name[0].text
+                  ? patient.name[0].text
+                  : patient.name.family + ' ' + patient.name.given,
+                gender: patient.gender ? patient.gender : 'no data',
+                birthDate: patient.birthDate ? patient.birthDate : 'no data',
+              };
+              this.overlaps.push(overlap);
+              this.overlaps = this.overlaps.filter(
+                (arr, index, self) =>
+                  index === self.findIndex((t) => t.id === arr.id)
+              );
+            }
+          }
+        }
+        console.log(this.overlaps);
+        console.log(this.patientCounts);
       },
     });
   }
