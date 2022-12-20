@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, filter, from, Observable } from 'rxjs';
+import { catchError, Observable } from 'rxjs';
 
 import { IPatient } from '../models/patients';
 import { AppointmentsService } from './appointments.service';

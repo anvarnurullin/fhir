@@ -40,3 +40,63 @@
   </div>
 </div> -->
 
+<div class="wrapper" *ngIf="patients">
+  <ul>
+    <li class="card" *ngFor="let patient of patients">
+      <h2>
+        {{
+          patient.name[0].text
+            ? patient.name[0].text
+            : patient.name[0].family + " " + patient.name[0].given
+        }}
+      </h2>
+      <p>Gender: {{ patient.gender ? patient.gender : "no data" }}</p>
+      <p>Birthdate: {{ patient.birthDate ? patient.birthDate : "no data" }}</p>
+      <!-- <p>{{ appointments.filter((app) => app.resource.participant[1].actor!.reference.split("/")[1] == patient.id).length }}</p>  -->
+      <div *ngFor="let appointment of appointments">
+        <p>
+          {{
+            appointment.resource.participant &&
+            appointment.resource.participant[1] &&
+            appointment.resource.participant[1].actor!.reference.split(
+              "/"
+            )[1] == patient.id
+              ? (appointment.resource.start | date : "medium")
+              : ""
+          }}
+        </p>
+        <p>
+          {{
+            appointment.resource.participant &&
+            appointment.resource.participant[1] &&
+            appointment.resource.participant[1].actor!.reference.split(
+              "/"
+            )[1] == patient.id
+              ? appointment.resource.description
+              : ""
+          }}
+        </p>
+      </div>
+      <!-- <p>Appointments:</p>
+        <div *ngFor="let appointment of coincidences">
+          <p>{{ coincidences.filter((app) => patients.some((pat) => app.resource.participant[1].actor!.reference.split("/")[1] == patient.id)).length }}</p>
+        <p>
+          {{
+            appointment.resource.participant[1].actor!.reference.split(
+              "/"
+            )[1] == patient.id ? (appointment.resource.start | date: 'medium') : ''
+          }}
+        </p>
+        <p>
+          {{
+            appointment.resource.participant[1].actor!.reference.split(
+              "/"
+            )[1] == patient.id
+              ? appointment.resource.description
+              : ""
+          }}
+        </p>
+      </div> -->
+    </li>
+  </ul>
+</div>

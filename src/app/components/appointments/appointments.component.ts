@@ -1,13 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import {
-  catchError,
-  distinct,
-  filter,
-  map,
-  mergeMap,
-  Observable,
-  switchMap,
-} from 'rxjs';
+import { catchError, map, mergeMap, Observable, switchMap } from 'rxjs';
 import { IAppointment } from 'src/app/models/appointments';
 import { IPatient } from 'src/app/models/patients';
 import { AppointmentsService } from 'src/app/services/appointments.service';
@@ -24,7 +16,9 @@ export class AppointmentsComponent implements OnInit {
   entries$: Observable<IPatient['entry']>;
   appointments$: Observable<IAppointment['entry']>;
   loading = false;
-  patients: any = [];
+  patients: any[] = [];
+  appointments: IAppointment['entry'];
+  coincidences: any[] = [];
 
   constructor(
     private http: HttpClient,
@@ -34,26 +28,6 @@ export class AppointmentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loading = true;
-
-    // this.entries$ = this.appointmentsService.getAppointments().pipe(
-    //   switchMap((data) =>
-    //     data
-    //       ? data.entry.map((entry) => {
-    //           return entry
-    //             ? this.patientsService.getPatients(entry)?.pipe(
-    //                 map((patient) => patient.entry),
-    //                 map((entry) => entry?.slice(0, 10))
-    //               )
-    //             : null;
-    //         })
-    //       : []
-    //   ),
-    //   mergeMap((data) => (data ? (data as Observable<IPatient['entry']>) : [])),
-    //   catchError((error) => {
-    //     console.log(error);
-    //     return [];
-    //   })
-    // );
 
     this.appointments$ = this.appointmentsService.getAppointments().pipe(
       map((data) => data.entry),
@@ -74,7 +48,7 @@ export class AppointmentsComponent implements OnInit {
                   entry.resource.participant![1].actor!.reference
                 }`
               )
-            : ([] as unknown as Observable<IPatient['entry']>);
+            : ([] as unknown);
         })
       ),
       mergeMap((data) => data as Observable<IPatient['entry']>),
@@ -84,11 +58,32 @@ export class AppointmentsComponent implements OnInit {
       })
     );
 
-    this.entries$.subscribe((data) => console.log(data));
-    this.appointments$.subscribe((data) => console.log(data));
+    this.appointments$.subscribe({
+      next: (data) => (this.appointments = data),
+      error: (error) => console.log(error),
+      complete: () => console.log(this.appointments),
+    });
 
-    if (this.appointments$ && this.entries$) {
-      this.loading = false;
-    }
+    this.entries$.subscribe({
+      next: (data) => this.patients.push(data),
+      error: (error) => console.log(error),
+      complete: () => {
+        this.patients = this.patients.filter(
+          (arr, index, self) => index === self.findIndex((t) => t.id === arr.id)
+        );
+        console.log(this.patients);
+        this.coincidences = this.appointments.filter((appointment) =>
+          this.patients.some(
+            (patient) =>
+              appointment.resource.participant &&
+              appointment.resource.participant.length > 1 &&
+              appointment.resource.participant[1].actor?.reference.split(
+                '/'
+              )[1] === patient.id
+          )
+        );
+        console.log(this.coincidences);
+      },
+    });
   }
 }
