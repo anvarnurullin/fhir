@@ -1,10 +1,11 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { catchError, map, mergeMap, Observable, switchMap } from 'rxjs';
-import { IAppointment } from 'src/app/models/appointments';
-import { IPatient } from 'src/app/models/patients';
+import { IAppointments } from 'src/app/models/appointments';
+import { IPatients } from 'src/app/models/patients';
 import { AppointmentsService } from 'src/app/services/appointments.service';
 import { HttpClient } from '@angular/common/http';
-import { IAppointmentPatient } from 'src/app/models/appointmentPatient';
+import { IPatient } from 'src/app/models/patient';
+import { IAppointment } from 'src/app/models/appointment';
 
 @Component({
   selector: 'app-appointments',
@@ -13,12 +14,13 @@ import { IAppointmentPatient } from 'src/app/models/appointmentPatient';
 })
 export class AppointmentsComponent implements OnInit {
   @Input()
-  entries$: Observable<IPatient['entry']>;
-  appointments$: Observable<IAppointment['entry']>;
+  entries$: Observable<IPatients['entry']>;
+  appointments$: Observable<IAppointments['entry']>;
   patients: any[] = [];
-  appointments: IAppointment['entry'];
-  overlaps: IAppointmentPatient[] = [];
+  appointments: IAppointments['entry'];
+  overlaps: IPatient[] = [];
   patientCounts = new Map<string, number>();
+  appointmentsRight: IAppointment[] = [];
 
   constructor(
     private http: HttpClient,
@@ -40,15 +42,15 @@ export class AppointmentsComponent implements OnInit {
           return entry.resource.participant &&
             entry.resource.participant[1] &&
             entry.resource.participant[1].actor
-            ? this.http.get<IPatient>(
+            ? this.http.get<IPatients>(
                 `https://hapi.fhir.org/baseR4/${
                   entry.resource.participant![1].actor!.reference
                 }`
               )
-            : ([] as unknown as Observable<IPatient['entry']>);
+            : ([] as unknown as Observable<IPatients['entry']>);
         })
       ),
-      mergeMap((data) => data as Observable<IPatient['entry']>),
+      mergeMap((data) => data as Observable<IPatients['entry']>),
       catchError((error) => {
         console.log(error);
         return [];
@@ -58,7 +60,24 @@ export class AppointmentsComponent implements OnInit {
     this.appointments$.subscribe({
       next: (data) => (this.appointments = data),
       error: (error) => console.log(error),
-      complete: () => console.log(this.appointments),
+      complete: () => {
+        for (const app of this.appointments) {
+          if (app.resource.participant && app.resource.participant[1]) {
+            const appo: IAppointment = {
+              description: app.resource.description
+                ? app.resource.description
+                : '',
+              start: app.resource.start ? app.resource.start : '',
+              participant:
+                app.resource.participant && app.resource.participant[1]
+                  ? app.resource.participant[1].actor!.reference.split('/')[1]
+                  : '',
+            };
+            this.appointmentsRight.push(appo);
+          }
+        }
+        console.log(this.appointmentsRight);
+      },
     });
 
     this.entries$.subscribe({
@@ -80,7 +99,7 @@ export class AppointmentsComponent implements OnInit {
           }
           for (const patient of this.patients) {
             if (patientId) {
-              const overlap: IAppointmentPatient = {
+              const overlap: IPatient = {
                 id: patient.id,
                 name: patient.name[0].text
                   ? patient.name[0].text

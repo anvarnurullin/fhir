@@ -1,4 +1,4 @@
-export interface IAppointmentPatient {
+export interface IPatient {
   id: string;
   name: [
     {

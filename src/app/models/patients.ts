@@ -1,4 +1,4 @@
-export interface IPatient {
+export interface IPatients {
   resourceType: string;
   id: string;
   meta: {

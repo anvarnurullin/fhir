@@ -1,4 +1,4 @@
-export interface IAppointment {
+export interface IAppointments {
   resourceType: string;
   id: string;
   meta: {

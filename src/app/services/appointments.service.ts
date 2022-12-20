@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, Observable } from 'rxjs';
-import { IAppointment } from '../models/appointments';
+import { IAppointments } from '../models/appointments';
 
 @Injectable({
   providedIn: 'root',
@@ -9,9 +9,9 @@ import { IAppointment } from '../models/appointments';
 export class AppointmentsService {
   constructor(private http: HttpClient) {}
 
-  getAppointments(): Observable<IAppointment> {
+  getAppointments(): Observable<IAppointments> {
     return this.http
-      .get<IAppointment>('https://hapi.fhir.org/baseR4/Appointment?_count=10')
+      .get<IAppointments>('https://hapi.fhir.org/baseR4/Appointment?_count=10')
       .pipe(
         catchError((error) => {
           console.log(error);
