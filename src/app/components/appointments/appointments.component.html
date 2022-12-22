@@ -1,26 +1,25 @@
-<div class="wrapper" *ngIf="overlaps">
-  <ul>
-    <li class="card" *ngFor="let patient of overlaps">
-      <h2>{{ patient.name }}</h2>
-      <p>Gender: {{ patient.gender }}</p>
-      <p>Birthdate: {{ patient.birthDate }}</p>
-      <div *ngFor="let count of patientCounts | keyvalue">
-        <p *ngIf="count.key == patient.id">
-          {{ "Appointments: " + count.value }}
-        </p>
+<div class="wrapper">
+  <mat-spinner *ngIf="loading"></mat-spinner>
+  <mat-card class="card" *ngFor="let patient of overlaps">
+    <mat-card-title>{{ patient.name }}</mat-card-title>
+    <mat-card-content>Gender: {{ patient.gender }}</mat-card-content>
+    <mat-card-content>Birthdate: {{ patient.birthDate }}</mat-card-content>
+    <div *ngFor="let count of patientCounts | keyvalue">
+      <mat-card-content class="apps" *ngIf="count.key == patient.id">
+        {{ "Appointments: " + count.value }}
+      </mat-card-content>
+    </div>
+    <ul>
+      <div *ngFor="let appointment of appointmentsEntries">
+        <li *ngIf="appointment.participant == patient.id">
+          <mat-card-content>
+            {{ appointment.start | date : "medium" }}
+          </mat-card-content>
+          <mat-card-content>
+            {{ appointment.description }}
+          </mat-card-content>
+        </li>
       </div>
-      <ul>
-        <div *ngFor="let appointment of appointmentsRight">
-          <li *ngIf="appointment.participant == patient.id">
-            <p>
-              {{ appointment.start | date : "medium" }}
-            </p>
-            <p>
-              {{ appointment.description }}
-            </p>
-          </li>
-        </div>
-      </ul>
-    </li>
-  </ul>
+    </ul>
+  </mat-card>
 </div>

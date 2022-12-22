@@ -1,4 +1,4 @@
-export interface IAppointment {
+export interface IAppointmentInfo {
   description: string;
   start: string;
   participant: string;
