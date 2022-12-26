@@ -57,15 +57,17 @@ export class AppointmentsComponent implements OnInit {
     this.entries$ = this.appointments$.pipe(
       switchMap((data) =>
         data.map((entry) => {
-          return entry.resource.participant &&
-            entry.resource.participant[1] &&
-            entry.resource.participant[1].actor
-            ? this.http.get<IPatients>(
+          return (
+            (entry.resource.participant &&
+              entry.resource.participant[1] &&
+              entry.resource.participant[1].actor &&
+              this.http.get(
                 `https://hapi.fhir.org/baseR4/${
                   entry.resource.participant![1].actor!.reference
                 }`
-              )
-            : ([] as unknown as Observable<IPatients['entry']>);
+              )) ||
+            []
+          );
         })
       ),
       mergeMap((data) => data as Observable<IPatients['entry']>),
@@ -83,7 +85,7 @@ export class AppointmentsComponent implements OnInit {
           const patientId =
             app.resource.participant &&
             app.resource.participant[1] &&
-            app.resource.participant[1].actor!.reference.split('/')[1];
+            app.resource.participant[1].actor?.reference.split('/')[1];
           if (this.patientCounts.has(patientId!)) {
             this.patientCounts.set(
               patientId!,
