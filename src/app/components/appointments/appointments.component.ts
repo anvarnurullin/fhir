@@ -1,7 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { catchError, map, tap, mergeMap, Observable, switchMap } from 'rxjs';
+import {
+  catchError,
+  map,
+  tap,
+  Observable,
+  switchMap,
+  finalize,
+  mergeAll,
+} from 'rxjs';
 import { IAppointments } from 'src/app/models/appointments';
-import { IPatients } from 'src/app/models/patients';
 import { AppointmentsService } from 'src/app/services/appointments.service';
 import { HttpClient } from '@angular/common/http';
 import { IPatientInfo } from 'src/app/models/patientInfo';
@@ -13,7 +20,7 @@ import { IAppointmentInfo } from 'src/app/models/appointmentInfo';
   styleUrls: ['./appointments.component.css'],
 })
 export class AppointmentsComponent implements OnInit {
-  entries$: Observable<IPatients['entry']>;
+  entries$: Observable<number>;
   appointments$: Observable<IAppointments['entry']>;
   patients: any[] = [];
   appointments: IAppointments['entry'];
@@ -30,27 +37,24 @@ export class AppointmentsComponent implements OnInit {
   ngOnInit(): void {
     this.appointments$ = this.appointmentsService.getAppointments().pipe(
       map((data) => data.entry),
-      catchError((error) => {
-        console.log(error);
-        return [];
-      }),
       tap((appointments) => {
         this.appointments = appointments;
         for (const app of this.appointments) {
           if (app.resource.participant && app.resource.participant[1]) {
             const appointment: IAppointmentInfo = {
-              description: app.resource.description
-                ? app.resource.description
-                : '',
-              start: app.resource.start ? app.resource.start : '',
+              description: app.resource.description || '',
+              start: app.resource.start || '',
               participant:
-                app.resource.participant && app.resource.participant[1]
-                  ? app.resource.participant[1].actor!.reference.split('/')[1]
-                  : '',
+                app.resource.participant[1].actor!.reference.split('/')[1] ||
+                '',
             };
             this.appointmentsEntries.push(appointment);
           }
         }
+      }),
+      catchError((error) => {
+        console.log(error);
+        return [];
       })
     );
 
@@ -60,32 +64,23 @@ export class AppointmentsComponent implements OnInit {
           return (
             (entry.resource.participant &&
               entry.resource.participant[1] &&
-              entry.resource.participant[1].actor &&
               this.http.get(
                 `https://hapi.fhir.org/baseR4/${
-                  entry.resource.participant![1].actor!.reference
+                  entry.resource.participant[1].actor!.reference
                 }`
               )) ||
             []
           );
         })
       ),
-      mergeMap((data) => data as Observable<IPatients['entry']>),
-      catchError((error) => {
-        console.log(error);
-        return [];
-      })
-    );
-
-    this.entries$.subscribe({
-      next: (data) => this.patients.push(data),
-      error: (error) => console.log(error),
-      complete: () => {
+      mergeAll(),
+      map((data) => this.patients.push(data)),
+      finalize(() => {
         for (const app of this.appointments) {
           const patientId =
             app.resource.participant &&
             app.resource.participant[1] &&
-            app.resource.participant[1].actor?.reference.split('/')[1];
+            app.resource.participant[1].actor!.reference.split('/')[1];
           if (this.patientCounts.has(patientId!)) {
             this.patientCounts.set(
               patientId!,
@@ -98,11 +93,11 @@ export class AppointmentsComponent implements OnInit {
             if (patientId) {
               const overlap: IPatientInfo = {
                 id: patient.id,
-                name: patient.name[0].text
-                  ? patient.name[0].text
-                  : patient.name.family + ' ' + patient.name.given,
-                gender: patient.gender ? patient.gender : 'no data',
-                birthDate: patient.birthDate ? patient.birthDate : 'no data',
+                name:
+                  patient.name[0].text ||
+                  patient.name.family + ' ' + patient.name.given,
+                gender: patient.gender || 'no data',
+                birthDate: patient.birthDate || 'no data',
               };
               this.overlaps.push(overlap);
               this.overlaps = this.overlaps
@@ -121,7 +116,12 @@ export class AppointmentsComponent implements OnInit {
         console.log(this.appointmentsEntries);
         console.log(this.overlaps);
         console.log(this.patientCounts);
-      },
-    });
+      }),
+      catchError((error) => {
+        console.log(error);
+        return [];
+      })
+    );
+    this.entries$.subscribe();
   }
 }
