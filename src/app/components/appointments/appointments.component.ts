@@ -53,7 +53,7 @@ export class AppointmentsComponent implements OnInit {
         }
       }),
       catchError((error) => {
-        console.log(error);
+        console.error(error);
         return [];
       })
     );
@@ -118,7 +118,7 @@ export class AppointmentsComponent implements OnInit {
         console.log(this.patientCounts);
       }),
       catchError((error) => {
-        console.log(error);
+        console.error(error);
         return [];
       })
     );

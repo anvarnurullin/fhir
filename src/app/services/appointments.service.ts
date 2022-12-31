@@ -14,7 +14,7 @@ export class AppointmentsService {
       .get<IAppointments>('https://hapi.fhir.org/baseR4/Appointment?_count=10')
       .pipe(
         catchError((error) => {
-          console.log(error);
+          console.error(error);
           return [];
         })
       );
